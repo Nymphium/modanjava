@@ -3,18 +3,20 @@ package src.lambda;
 import src.util.Pair;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public interface  Lambda {
-  public sealed interface T<V> permits Unit, Var, Abs, App, Builtin1 {
-    public <Env extends List<Pair<V, T<V>>>> T<V> eval(Env env);
-  }
+  public sealed interface T<V>
+    permits Unit, Var, Abs, App, Builtin1, NativeFn {
+      public T<V> eval(List<Pair<V, T<V>>> env);
+    }
 
   public record Unit<V>() implements T<V> {
     public String toString() {
       return "()";
     }
 
-    public <Env extends List<Pair<V, T<V>>>> T<V> eval(Env env) {
+    public T<V> eval(List<Pair<V, T<V>>> env) {
       return this;
     }
   }
@@ -24,7 +26,7 @@ public interface  Lambda {
       return this.name.toString();
     }
 
-    public <Env extends List<Pair<V, T<V>>>> T<V> eval(Env env) throws RuntimeException {
+    public T<V> eval(List<Pair<V, T<V>>> env) throws RuntimeException {
       var e = env.stream().filter(p -> p.first().equals(this.name)).findFirst();
       if (e.isPresent()) {
         return e.get().second();
@@ -39,7 +41,7 @@ public interface  Lambda {
       return STR."λ\{this.param}.\{this.body}";
     }
 
-    public <Env extends List<Pair<V, T<V>>>> T<V> eval(Env env) {
+    public T<V> eval(List<Pair<V, T<V>>> env) {
       return this;
     }
   }
@@ -49,7 +51,7 @@ public interface  Lambda {
       return STR."(\{this.func} \{this.arg})";
     }
 
-    public <Env extends List<Pair<V, T<V>>>> T<V> eval(Env env) throws RuntimeException {
+    public T<V> eval(List<Pair<V, T<V>>> env) throws RuntimeException {
       var func = this.func.eval(env);
       var arg = this.arg.eval( env);
       return switch (func) {
@@ -58,6 +60,7 @@ public interface  Lambda {
           newEnv.add(new Pair<>(param, arg));
           yield body.eval(newEnv);
         }
+        case NativeFn(Function<T<V>, T<V>> fn) -> fn.apply(arg);
         default -> { throw new RuntimeException(STR."not a function: \{func}"); }
       };
     }
@@ -68,24 +71,27 @@ public interface  Lambda {
       return STR."\{this.name} \{this.arg}";
     }
 
-    public <Env extends List<Pair<V, T<V>>>> T<V> eval(Env env) throws RuntimeException {
+    public T<V> eval(List<Pair<V, T<V>>> env) throws RuntimeException {
       return switch (this.name) {
           case "print" -> {
             var m = this.arg.eval(env);
             System.out.println(m);
-            yield unit();
+            yield new Unit();
           }
           default -> { throw new RuntimeException(STR."unknown builtin1: \{this.name}"); }
       };
     }
   }
 
-  public static <V> T<V> unit() { return new Unit(); }
-  public static <V> T<V> v(V name) { return new Var(name); }
-  public static <V> T<V> abs(V param, T body) { return new Abs(param, body); }
-  public static <V> T<V> app(T<V> func, T<V> arg) { return new App(func, arg); }
-  public static <V> T<V> builtin1(String name, T<V> arg) { return new Builtin1(name, arg); }
-  public static <V> T<V> print(T<V> arg) { return new Builtin1("print", arg); }
+  public record NativeFn<V>(Function<T<V>, T<V>> fn) implements T<V> {
+    public String toString() {
+      return "<native function>";
+    }
+
+    public T<V> eval(List<Pair<V, T<V>>> env) {
+      return this;
+    }
+  }
 
   // public static String show(T l) {
     // return switch (l) {

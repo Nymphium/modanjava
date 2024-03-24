@@ -1,15 +1,26 @@
+import static src.lambda.Builder.*;
+
+import src.util.Pair;
 import src.lambda.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 void main() {
-  var id = Lambda.abs("x", Lambda.v("x"));
+  var id = abs("x", var("x"));
   System.out.println(id);
 
-  var two = Lambda.abs("f", Lambda.abs("x", Lambda.app(Lambda.v("f"), Lambda.app(Lambda.v("f"), Lambda.v("x")))));
-  var three = Lambda.abs("f", Lambda.abs("x", Lambda.app(Lambda.v("f"), Lambda.app(Lambda.v("f"), Lambda.app(Lambda.v("f"), Lambda.v("x"))))));
-  var plus = Lambda.abs("m", Lambda.abs("n", Lambda.abs("f", Lambda.abs("x", Lambda.app(Lambda.app(Lambda.v("m"), Lambda.v("f")), Lambda.app(Lambda.app(Lambda.v("n"), Lambda.v("f")), Lambda.v("x")))))));
-  var app = Lambda.builtin1("print", Lambda.app(Lambda.app(plus, two), three));
+  var two = abs("f", abs("x", app(var("f"), app(var("f"), var("x")))));
+  var three = abs("f", abs("x", app(var("f"), app(var("f"), app(var("f"), var("x"))))));
+  var plus = abs("m", abs("n", abs("f", abs("x", app(app(var("m"), var("f")), app(app(var("n"), var("f")), var("x")))))));
+  var app = builtin1("print", app(app(plus, two), three));
 
-  // Lambda.eval(app, new ArrayList<>());
   app.eval(new ArrayList<>());
+
+  List<Pair<String, Lambda.T<String>>> env = List.of(new Pair<>("print", nativefn(a -> {
+          System.out.println(a);
+          return unit();
+        })));
+
+  app(var("print"), app(app(plus, two), three)).eval(env);
 }
