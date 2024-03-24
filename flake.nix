@@ -21,6 +21,9 @@
             export JAVA_HOME=$out
           '';
         };
+        java-lsp = pkgs.java-language-server.override {
+          jdk = jdk22;
+        };
       in
       {
         devShell =
@@ -28,7 +31,7 @@
             buildInputs = [
               jdk22
               pkgs.google-java-format
-              pkgs.java-language-server
+              java-lsp
               pkgs.nixpkgs-fmt
             ];
           };
