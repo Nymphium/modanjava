@@ -13,11 +13,10 @@ void main() {
   var two = abs("f", abs("x", app(var("f"), app(var("f"), var("x")))));
   var three = abs("f", abs("x", app(var("f"), app(var("f"), app(var("f"), var("x"))))));
   var plus = abs("m", abs("n", abs("f", abs("x", app(app(var("m"), var("f")), app(app(var("n"), var("f")), var("x")))))));
-  var app = builtin1("print", app(app(plus, two), three));
+  builtin1("print", app(app(plus, two), three)).eval(new ArrayList<>());
 
-  app.eval(new ArrayList<>());
-
-  List<Pair<String, Lambda.T<String>>> env = List.of(new Pair<>("print", nativefn(a -> {
+  List<Pair<String, Lambda<String>>> env = List.of(
+      new Pair<>("print", nativefn(a -> {
           System.out.println(a);
           return unit();
         })));
