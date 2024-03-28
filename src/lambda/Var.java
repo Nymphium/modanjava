@@ -3,6 +3,7 @@ package src.lambda;
 import src.util.Pair;
 import java.util.List;
 
+// record - Java 16
 public record Var<V>(V name) implements Lambda<V> {
   public String toString() {
     return this.name.toString();
