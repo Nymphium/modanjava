@@ -10,7 +10,7 @@ import java.util.function.Function;
 
 // Implicitly Declared Classes and Instance Main Methods
 // (Previously "Unnamed Classes and Instance Main Methods" Java 21, 2nd preview) - Java 22
-public class Main {
+class Main {
   void main() {
     var id = abs("x", var("x"));
     System.out.println(id);
